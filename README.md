@@ -32,3 +32,5 @@ Note:
 - consommation du module PS2 "modérée"... pourrait fonctionner avec ZMK sur batterie, mais durée de vie de la batterie estimée à 1 semaine max (pas encore essayé).
 - le Corian noir est cassant... et mon boitier trop fin. En Blanc ça serait plus solie... à voir à l'usage!
 - la soudure du module PS2 de récup nécessite une patiente infinie, ou une dextérité supérieure à la mienne... de belles heures de galère...
+- qq libertés sur la layer "code" d'Ergo-L, pour pouvoir loger les touches de directions à droite, en complément d'une layer "num" qui reprend aussi les qq touches manquantes
+- layer "souris" automatique quand on bouge la souris (active les 3 boutons du bas à droite en tant que boutons de souris)
