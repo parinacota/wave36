@@ -12,6 +12,13 @@
 static uint16_t trackpoint_timer;
 extern int tp_buttons; // mousekey button state set in action.c and used in ps2_mouse.c
 
+typedef enum tp_lock_dirs {
+  TP_FREE,
+  TP_LOCK_H,
+  TP_LOCK_V,
+} tp_lock_dirs_t;
+static tp_lock_dirs_t trackpoint_lock_dir;
+
 #define WINALT1(A) {SEND_STRING(SS_LALT(SS_TAP(X_KP_ ## A)));}
 #define WINALT2(A, B) {SEND_STRING(SS_LALT(SS_TAP(X_KP_ ## A) SS_TAP(X_KP_ ## B)));}
 #define WINALT3(A, B, C) {SEND_STRING(SS_LALT(SS_TAP(X_KP_ ## A) SS_TAP(X_KP_ ## B) SS_TAP(X_KP_ ## C)));}
@@ -82,6 +89,7 @@ enum custom_keycodes {
   ME_QCADR,
   ME_LQUOTFR,
   ME_RQUOTFR,
+  ME_UNDS,
   ME_DLR,
   ME_NTILD,
   ME_MICR,
@@ -116,7 +124,6 @@ enum custom_keycodes {
   ME_RCBR,
   ME_LBRC,
   ME_RBRC,
-  ME_UNDS,
   ME_PLUS,
   ME_ASTR,
   ME_EQL,
@@ -173,6 +180,7 @@ void tap_dance_tap_hold_reset(tap_dance_state_t *state, void *user_data) {
 enum {
     TD1_CTL_GUI,
     TD2_BSPC_MS3,
+    TD3_SLSH_LALT,
 };
 
 // Tap Dance definitions
@@ -180,6 +188,7 @@ tap_dance_action_t tap_dance_actions[] = {
     // Tap once for Escape, twice for Caps Lock
     [TD1_CTL_GUI] = ACTION_TAP_DANCE_DOUBLE(KC_LCTL, KC_LGUI),
     [TD2_BSPC_MS3] = ACTION_TAP_DANCE_TAP_HOLD(KC_BSPC, MS_BTN3),
+    [TD3_SLSH_LALT] = ACTION_TAP_DANCE_TAP_HOLD(S(KC_DOT), KC_LALT),
 };
 
 void keyboard_pre_init_user(void) {
@@ -187,7 +196,7 @@ void keyboard_pre_init_user(void) {
   gpio_set_pin_output(LED_INTERNAL);
   gpio_write_pin(LED_INTERNAL,true);
 
-  //RESET PS2
+  //RESET PS2 - GP9 = PIN RESET PS2
   gpio_set_pin_output(GP9);
   gpio_write_pin(GP9,true);
   wait_ms(2);
@@ -222,7 +231,7 @@ void keyboard_post_init_user(void) {
   // turn off internal led + detect host os
   gpio_write_pin(LED_INTERNAL,false);
   defer_exec(500, get_host_os, NULL);
-  rgblight_sethsv_at(HSV_OFF, 0);
+  //rgblight_sethsv_at(HSV_OFF, 0);
 
   //gpio_write_pin(GP9,false);
 
@@ -239,7 +248,7 @@ FR_Q,         FR_C,         FR_O,         FR_P,         FR_W,                   
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 FR_A,         FR_S,         FR_E,         FR_N,         FR_F,                                     FR_L,         FR_R,         FR_T,         FR_I,         FR_U,
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-LALT_T(FR_Z), FR_X ,        ME_MINS,      FR_V,         LT(_FCT,FR_B),                            FR_DOT,       FR_H,         FR_G,         FR_COMM,      RALT_T(FR_K),
+LALT_T(FR_Z), FR_X ,        ME_MINS,      FR_V,         LT(_FCT,FR_B),                            FR_DOT,       FR_H,         FR_G,         FR_COMM,      LALT_T(FR_K),
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
                                         TD(TD1_CTL_GUI),LM(_SHF, MOD_LSFT),MO(_COD),TD(TD2_BSPC_MS3),LT(_NUM,KC_SPC),KC_ENT        
 //                                       +-------------+-------------+-------------+-------------+-------------+-------------+     
@@ -251,7 +260,7 @@ _______,      _______,      _______,      _______,      _______,                
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 _______,      _______,      _______,      _______,      _______,                                  _______,      _______,      _______,      _______,      _______,
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-_______,      _______,      FR_COMM,      _______,      _______,                                  ME_COLN,      _______,      _______,      ME_SCLN,      _______,
+_______,      _______,      FR_COMM,      _______,      FR_B,                                     ME_COLN,      _______,      _______,      ME_SCLN,      FR_K,
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
                                           _______,      _______,      _______,      ME_DEL,       ME_INSEC,     _______        
 //                                       +-------------+-------------+-------------+-------------+-------------+-------------+     
@@ -260,7 +269,7 @@ _______,      _______,      FR_COMM,      _______,      _______,                
 
     [_1DK] = LAYOUT_36keys(
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+
-ME_ACIR,      FR_CCED,      ME_OE,        ME_OCIR,      FR_DEG,                                   ME_SECT,      ME_MICR,      FR_UNDS,      FR_DIAE,      ME_UCIR,   
+ME_ACIR,      FR_CCED,      ME_OE,        ME_OCIR,      FR_DEG,                                   ME_SECT,      ME_MICR,      ME_UNDS,      FR_DIAE,      ME_UCIR,   
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 FR_AGRV,      FR_EACU,      FR_EGRV,      ME_ECIR,      ME_NTILD,                                 ME_LQUOTFR,   ME_RQUOTFR,   ME_ICIR,      ME_ITRE,      FR_UGRV,
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
@@ -296,11 +305,11 @@ FR_QUOT,      ME_LBRC,      ME_RBRC,      ME_UNDS,      ME_HASH,                
 
     [_NUM] = LAYOUT_36keys(
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+
-KC_TAB,       ME_AT,        KC_DOT,       ME_TIL,       KC_ESC,                                   XXXXXXX,      KC_SPC,       KC_COMM,      XXXXXXX,      ME_BSLH,   
+KC_TAB,       ME_AT,        KC_SPC,       ME_TIL,       KC_ESC,                                   XXXXXXX,      FR_DOT,       FR_COMM,      XXXXXXX,      ME_BSLH,   
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 FR_1,         FR_2,         FR_3,         FR_4,         FR_5,                                     FR_6,         FR_7,         FR_8,         FR_9,         FR_0,
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-XXXXXXX,      FR_LPRN,      FR_RPRN,      ME_CIR,       ME_GRV,                                   ME_EQL,       ME_PLUS,      ME_MINS,      ME_ASTR,      FR_SLSH,
+A(KC_TAB),      FR_LPRN,      FR_RPRN,      ME_CIR,       ME_GRV,                                   ME_EQL,       ME_PLUS,      ME_MINS,      ME_ASTR,      FR_SLSH,
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
                                           _______,      KC_LSFT,      _______,      _______,      _______,      _______        
 //                                       +-------------+-------------+-------------+-------------+-------------+-------------+     
@@ -310,7 +319,7 @@ XXXXXXX,      FR_LPRN,      FR_RPRN,      ME_CIR,       ME_GRV,                 
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+
 QK_REBOOT,    XXXXXXX,      XXXXXXX,      KC_BRIU,      KC_VOLU,                                  KC_F1,        KC_F2,        KC_F3,        KC_F4,        KC_F5,   
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-XXXXXXX,      XXXXXXX,      XXXXXXX,      KC_BRID,      KC_VOLD,                                  KC_F6,        KC_F7,        KC_F8,        KC_F9,        KC_F10,  
+QK_BOOTLOADER,XXXXXXX,      XXXXXXX,      KC_BRID,      KC_VOLD,                                  KC_F6,        KC_F7,        KC_F8,        KC_F9,        KC_F10,  
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 XXXXXXX,      XXXXXXX,      XXXXXXX,      XXXXXXX,      XXXXXXX,                                  KC_F11,       KC_F12,       XXXXXXX,      XXXXXXX,      KC_PSCR,  
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
@@ -326,7 +335,7 @@ _______,      _______,      _______,      _______,      _______,                
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
 _______,      _______,      _______,      _______,      _______,                                  _______,      _______,      _______,      _______,      _______,
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-                                          _______,      _______,      _______,      MS_BTN3,      MS_BTN1,      MS_BTN2        
+                                          _______,      _______,      _______,      _______,      MS_BTN1,      MS_BTN2        
 //                                       +-------------+-------------+-------------+-------------+-------------+-------------+     
     )
 };
@@ -337,12 +346,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   //release MOUSE layer if any other key is pressed
   if (trackpoint_timer && keycode!=MS_BTN1 && keycode!=MS_BTN2 && keycode!=MS_BTN3) { 
       layer_off(_MSE);
+      unregister_code(MS_BTN1);
+      unregister_code(MS_BTN2);
+      unregister_code(MS_BTN3);
       trackpoint_timer = 0; //Reset the timer again until the mouse moves more
+  }
+
+  //enable _NUM when MS_BTN1 is hold
+  if (keycode == MS_BTN1) {
+    if (record->event.pressed) layer_on(_NUM);
+    else layer_off(_NUM);
   }
 
   switch (keycode) {
     //TAP DANCE section
     case TD(TD2_BSPC_MS3):
+    case TD(TD3_SLSH_LALT):
       action = &tap_dance_actions[QK_TAP_DANCE_GET_INDEX(keycode)];
       if (!record->event.pressed && action->state.count && !action->state.finished) {
         tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)action->user_data;
@@ -377,6 +396,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           case ME_CADR:   if (macos_mode) OPTION(XKEY(X_EQL))       else WINALT4(0,1,5,1); break;// ALT 151 = 
           case ME_SCADR:  if (macos_mode) SHIFT(OPTION(XKEY(X_EQL)))else WINALT4(0,1,5,0); break;// ALT 0150 = 
           case ME_QCADR:  if (macos_mode) XKEY(X_EQL)               else WINALT4(0,1,7,3); break;// ALT 0173 = - (insec)
+          case ME_UNDS:   if (macos_mode)  SHIFT(XKEY(X_EQL))       else XKEY(X_8); break; // _
           case ME_LQUOTFR: if (macos_mode) OPTION(XKEY(X_7))        else WINALT3(1,7,4); break;// ALT 174 = «
           case ME_RQUOTFR: if (macos_mode) SHIFT(OPTION(XKEY(X_7))) else WINALT3(1,7,5); break;// ALT 175 = »
           case ME_NTILD:  if (macos_mode) XTILD(X_N)                else WINALT3(1,6,4); break;// ALT 164 = ñ
@@ -409,7 +429,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           case ME_RCBR:  if (macos_mode)  OPTION(XKEY(X_MINS))      else ALTGR(XKEY(X_EQL)); break; // {
           case ME_LBRC:  if (macos_mode)  SHIFT(OPTION(XKEY(X_5)))  else ALTGR(XKEY(X_5)); break; // [
           case ME_RBRC:  if (macos_mode)  SHIFT(OPTION(XKEY(X_MINS))) else ALTGR(XKEY(X_MINS)); break; // ]
-          case ME_UNDS:  if (macos_mode)  SHIFT(XKEY(X_EQL))        else XKEY(X_8); break; // _
+          
           case ME_PLUS:  if (macos_mode)  SHIFT(XKEY(X_SLSH))       else SHIFT(XKEY(X_EQL)); break; // +
           case ME_EQL:   if (macos_mode)  XKEY(X_SLSH)              else XKEY(X_EQL); break; // =
           case ME_ASTR:  if (macos_mode)  SHIFT(XKEY(X_RBRC))       else XKEY(X_NUHS); break; // *
@@ -475,9 +495,25 @@ void ps2_mouse_moved_user(report_mouse_t *mouse_report) { // Whenever the TrackP
         if (!tp_buttons) { //I'm still a bit confused about this one, but I believe it checks that if the mousekey state isn't set, turn on this layer specified?
             layer_on(_MSE);
             trackpoint_timer = timer_read();
-            //print("Trackpoint Buttons!: On\n");
         }
     }
+    //lock H or V if _COD is enabled
+    if (layer_state_is(_COD)) {
+      if (trackpoint_lock_dir == TP_FREE) {
+        if (abs(mouse_report->x) > abs(mouse_report->y))
+          trackpoint_lock_dir = TP_LOCK_H;
+        else
+          trackpoint_lock_dir = TP_LOCK_V;
+      }
+    } else {
+      trackpoint_lock_dir = TP_FREE;
+    }
+
+    //if locked
+    if (trackpoint_lock_dir == TP_LOCK_H) mouse_report->y = 0;
+    if (trackpoint_lock_dir == TP_LOCK_V) mouse_report->x = 0;
+
+    
 }
 
 void matrix_scan_user(void) {  // ALWAYS RUNNING VOID FUNCTION, CAN BE USED TO CHECK CLOCK RUNTIMES OVER THE DURATION THAT THE KEYBOARD IS POWERED ON
@@ -485,6 +521,7 @@ void matrix_scan_user(void) {  // ALWAYS RUNNING VOID FUNCTION, CAN BE USED TO C
     if (!tp_buttons) {
       layer_off(_MSE);
       trackpoint_timer = 0; //Reset the timer again until the mouse moves more
+      trackpoint_lock_dir = TP_FREE;
     }
   }
 }
