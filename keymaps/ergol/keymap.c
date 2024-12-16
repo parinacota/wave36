@@ -293,11 +293,11 @@ ME_AEM,       ME_SUP3,      XXXXXXX,      XXXXXXX,      XXXXXXX,                
 
     [_COD] = LAYOUT_36keys(
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+
-FR_DQUO,      ME_LABK,      ME_RABK,      FR_AMPR,      FR_PERC,                                  XXXXXXX,      ME_EURO,      ME_SML1,      ME_SML2,      ME_SML3,   
+FR_DQUO,      ME_LABK,      ME_RABK,      FR_AMPR,      FR_PERC,                                  FR_DLR,       ME_EURO,      ME_SML1,      ME_SML2,      ME_SML3,   
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-ME_LCBR,      FR_LPRN,      FR_RPRN,      ME_RCBR,      ME_PIPE,                                  FR_DLR,       KC_LEFT,      KC_DOWN,      KC_UP,        KC_RGHT,
+ME_LCBR,      FR_LPRN,      FR_RPRN,      ME_RCBR,      ME_PIPE,                                  KC_LEFT,      KC_DOWN,      KC_UP,        KC_RGHT,      XXXXXXX,
 //-----------+-------------+-------------+-------------+-------------+                           +-------------+-------------+-------------+-------------+-------------+ 
-FR_QUOT,      ME_LBRC,      ME_RBRC,      ME_UNDS,      ME_HASH,                                  XXXXXXX,      KC_HOME,      KC_PGDN,      KC_PGUP,      KC_END,
+FR_QUOT,      ME_LBRC,      ME_RBRC,      ME_UNDS,      ME_HASH,                                  KC_HOME,      KC_PGDN,      KC_PGUP,      KC_END,       XXXXXXX,
 //-----------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
                                           _______,      XXXXXXX,      XXXXXXX,      _______,      KC_LSFT,      _______        
 //                                       +-------------+-------------+-------------+-------------+-------------+-------------+     
@@ -351,6 +351,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       unregister_code(MS_BTN3);
       trackpoint_timer = 0; //Reset the timer again until the mouse moves more
   }
+
+  // persist MOUSE layer of mouse button pressed
+  if (keycode == MS_BTN1 || keycode == MS_BTN2) trackpoint_timer = timer_read();
 
   //enable _NUM when MS_BTN1 is hold
   if (keycode == MS_BTN1) {
